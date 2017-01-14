@@ -34,6 +34,8 @@ func main() {
 
 	router.GET("/stocks", env.GetStocksEndpoint)
 	router.GET("/stocks/:symbol", env.GetSingleStocksEndpoint)
+	router.GET("/users", env.GetUsersEndpoint)
+	router.GET("/users/:id", env.GetSingleUserEndpoint)
 
 	router.Run(":" + port)
 
@@ -80,4 +82,23 @@ func (env *Env) GetSingleStocksEndpoint(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	c.JSON(200, stock)
+}
+
+func (env *Env) GetUsersEndpoint(c *gin.Context) {
+
+	usrs, err := env.db.GetUsers()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, usrs)
+}
+
+func (env *Env) GetSingleUserEndpoint(c *gin.Context) {
+
+	symbol := c.Param("id")
+	usr, err := env.db.GetSingleUser(symbol)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, usr)
 }

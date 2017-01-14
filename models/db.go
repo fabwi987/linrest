@@ -9,6 +9,8 @@ import (
 type Datastore interface {
 	GetStocks() ([]*Stock, error)
 	GetSingleStock(symbol string) (*Stock, error)
+	GetUsers() ([]*User, error)
+	GetSingleUser(symbol string) (*User, error)
 }
 
 type DB struct {
