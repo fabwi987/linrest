@@ -4,8 +4,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/fabwi987/linrest/models"
+	"github.com/fabwi987/yaho"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,6 +45,30 @@ func (env *Env) GetStocksEndpoint(c *gin.Context) {
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
+
+	var symbols string
+	for i := 0; i < len(stocks); i++ {
+		symbols = symbols + "," + stocks[i].Symbol
+	}
+
+	latestStocks, err := yaho.GetStocks(symbols)
+
+	for i := 0; i < len(latestStocks.Query.Results.Quote); i++ {
+		var tempfloat float64
+		tempfloat, err := strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+		stocks[i].LastTradePriceOnly = tempfloat
+
+		tempfloat, err = strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+		tempfloat = tempfloat / stocks[i].BuyPrice
+		stocks[i].Change = tempfloat
+	}
+
 	c.JSON(200, stocks)
 }
 

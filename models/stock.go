@@ -29,6 +29,7 @@ func (db *DB) GetStocks() ([]*Stock, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		stcks = append(stcks, tempStock)
 	}
 
