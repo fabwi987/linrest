@@ -36,6 +36,8 @@ func main() {
 	router.GET("/stocks/:symbol", env.GetSingleStocksEndpoint)
 	router.GET("/users", env.GetUsersEndpoint)
 	router.GET("/users/:id", env.GetSingleUserEndpoint)
+	router.GET("/recommendations", env.GetRecommendationsEndpoint)
+	router.GET("/recommendations/:id", env.GetRecommendationsByUsersEndpoint)
 
 	router.Run(":" + port)
 
@@ -96,9 +98,30 @@ func (env *Env) GetUsersEndpoint(c *gin.Context) {
 func (env *Env) GetSingleUserEndpoint(c *gin.Context) {
 
 	symbol := c.Param("id")
-	usr, err := env.db.GetSingleUser(symbol)
+	intid, err := strconv.Atoi(symbol)
+	usr, err := env.db.GetSingleUser(intid)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	c.JSON(200, usr)
+}
+
+func (env *Env) GetRecommendationsEndpoint(c *gin.Context) {
+
+	recs, err := env.db.GetRecommendations()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, recs)
+}
+
+func (env *Env) GetRecommendationsByUsersEndpoint(c *gin.Context) {
+
+	symbol := c.Param("id")
+	intid, err := strconv.Atoi(symbol)
+	recs, err := env.db.GetRecommendationsByUser(intid)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, recs)
 }

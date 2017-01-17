@@ -9,7 +9,7 @@ type User struct {
 
 func (db *DB) GetUsers() ([]*User, error) {
 
-	rows, err := db.Query("SELECT * FROM users")
+	rows, err := db.Query("SELECT idusers, name, phone, mail FROM users")
 	if err != nil {
 		return nil, err
 	}
@@ -33,9 +33,9 @@ func (db *DB) GetUsers() ([]*User, error) {
 	return usrs, nil
 }
 
-func (db *DB) GetSingleUser(symbol string) (*User, error) {
+func (db *DB) GetSingleUser(symbol int) (*User, error) {
 
-	stmt, err := db.Prepare("SELECT * FROM users WHERE idusers = ?")
+	stmt, err := db.Prepare("SELECT idusers, name, phone, mail FROM users WHERE idusers = ?")
 	defer stmt.Close()
 	rows, err := stmt.Query(symbol)
 	defer rows.Close()

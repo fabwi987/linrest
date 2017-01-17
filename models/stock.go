@@ -16,7 +16,7 @@ type Stock struct {
 //GetStocks return all stocks from the database
 func (db *DB) GetStocks() ([]*Stock, error) {
 
-	rows, err := db.Query("SELECT * FROM stocks")
+	rows, err := db.Query("SELECT id, symbol, created, buyprice, numberofshare, salesprice, name, lasttradeprice FROM stocks")
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (db *DB) GetStocks() ([]*Stock, error) {
 //GetSingleStock selects one specific stocks from the database
 func (db *DB) GetSingleStock(symbol string) (*Stock, error) {
 
-	stmt, err := db.Prepare("SELECT * FROM stocks WHERE symbol = ?")
+	stmt, err := db.Prepare("SELECT id, symbol, created, buyprice, numberofshare, salesprice, name, lasttradeprice FROM stocks WHERE symbol = ?")
 	defer stmt.Close()
 	rows, err := stmt.Query(symbol)
 	defer rows.Close()

@@ -10,7 +10,9 @@ type Datastore interface {
 	GetStocks() ([]*Stock, error)
 	GetSingleStock(symbol string) (*Stock, error)
 	GetUsers() ([]*User, error)
-	GetSingleUser(symbol string) (*User, error)
+	GetSingleUser(symbol int) (*User, error)
+	GetRecommendations() ([]*Recommendation, error)
+	GetRecommendationsByUser(symbol int) ([]*Recommendation, error)
 }
 
 type DB struct {
