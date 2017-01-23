@@ -16,7 +16,7 @@ type Env struct {
 }
 
 func main() {
-	db, err := models.NewDB("root:trustno1@/test")
+	db, err := models.NewDB("root:trustno1@/test?parseTime=true")
 	if err != nil {
 		log.Panic(err)
 	}
@@ -38,6 +38,8 @@ func main() {
 	router.GET("/users/:id", env.GetSingleUserEndpoint)
 	router.GET("/recommendations", env.GetRecommendationsEndpoint)
 	router.GET("/recommendations/:id", env.GetRecommendationsByUsersEndpoint)
+
+	router.GET("/test", env.CreateRecommendationsEndpoint)
 
 	router.Run(":" + port)
 
@@ -120,6 +122,15 @@ func (env *Env) GetRecommendationsByUsersEndpoint(c *gin.Context) {
 	symbol := c.Param("id")
 	intid, err := strconv.Atoi(symbol)
 	recs, err := env.db.GetRecommendationsByUser(intid)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, recs)
+}
+
+func (env *Env) CreateRecommendationsEndpoint(c *gin.Context) {
+
+	recs, err := env.db.CreateRecommendation("CBA.ST", 1, 1)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}

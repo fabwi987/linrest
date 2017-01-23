@@ -13,6 +13,7 @@ type Datastore interface {
 	GetSingleUser(symbol int) (*User, error)
 	GetRecommendations() ([]*Recommendation, error)
 	GetRecommendationsByUser(symbol int) ([]*Recommendation, error)
+	CreateRecommendation(symbol string, user int, meet int) (sql.Result, error)
 }
 
 type DB struct {
