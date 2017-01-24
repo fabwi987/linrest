@@ -9,11 +9,12 @@ type User struct {
 	Mail        string    `json:"Mail" bson:"Mail"`
 	Created     time.Time `json:"Created" bson:"Created"`
 	LastUpdated time.Time `json:"LastUpdated" bson:"LastUpdated"`
+	URL         string    `json:"URL" bson:"URL"`
 }
 
 func (db *DB) GetUsers() ([]*User, error) {
 
-	rows, err := db.Query("SELECT idusers, name, phone, mail, created, lastupdated FROM users")
+	rows, err := db.Query("SELECT idusers, name, phone, mail, created, lastupdated, url FROM users")
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +23,7 @@ func (db *DB) GetUsers() ([]*User, error) {
 	usrs := make([]*User, 0)
 	for rows.Next() {
 		tempUser := new(User)
-		err = rows.Scan(&tempUser.ID, &tempUser.Name, &tempUser.Phone, &tempUser.Mail, &tempUser.Created, &tempUser.LastUpdated)
+		err = rows.Scan(&tempUser.ID, &tempUser.Name, &tempUser.Phone, &tempUser.Mail, &tempUser.Created, &tempUser.LastUpdated, &tempUser.URL)
 		if err != nil {
 			return nil, err
 		}
@@ -39,14 +40,14 @@ func (db *DB) GetUsers() ([]*User, error) {
 
 func (db *DB) GetSingleUser(symbol int) (*User, error) {
 
-	stmt, err := db.Prepare("SELECT idusers, name, phone, mail, created, lastupdated FROM users WHERE idusers = ?")
+	stmt, err := db.Prepare("SELECT idusers, name, phone, mail, created, lastupdated, url FROM users WHERE idusers = ?")
 	defer stmt.Close()
 	rows, err := stmt.Query(symbol)
 	defer rows.Close()
 	tempUser := new(User)
 
 	for rows.Next() {
-		err := rows.Scan(&tempUser.ID, &tempUser.Name, &tempUser.Phone, &tempUser.Mail, &tempUser.Created, &tempUser.LastUpdated)
+		err := rows.Scan(&tempUser.ID, &tempUser.Name, &tempUser.Phone, &tempUser.Mail, &tempUser.Created, &tempUser.LastUpdated, &tempUser.URL)
 		if err != nil {
 			return nil, err
 		}

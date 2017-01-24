@@ -1,7 +1,10 @@
 package models
 
-import "time"
-import "database/sql"
+import (
+	"database/sql"
+	"strconv"
+	"time"
+)
 
 type Recommendation struct {
 	ID          int       `json:"ID" bson:"ID"`
@@ -9,11 +12,12 @@ type Recommendation struct {
 	Stck        *Stock    `json:"Stock" bson:"Stock"`
 	Created     time.Time `json:"Created" bson:"Created"`
 	LastUpdated time.Time `json:"LastUpdated" bson:"LastUpdated"`
+	URL         string    `json:"URL" bson:"URL"`
 }
 
 func (db *DB) GetRecommendations() ([]*Recommendation, error) {
 
-	rows, err := db.Query("SELECT idrecs, idusr, idstock, created, lastupdated FROM recs")
+	rows, err := db.Query("SELECT idrecs, idusr, idstock, created, lastupdated, url FROM recs")
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +28,7 @@ func (db *DB) GetRecommendations() ([]*Recommendation, error) {
 	var stc string
 	for rows.Next() {
 		ps := new(Recommendation)
-		err = rows.Scan(&ps.ID, &usr, &stc, &ps.Created, &ps.LastUpdated)
+		err = rows.Scan(&ps.ID, &usr, &stc, &ps.Created, &ps.LastUpdated, &ps.URL)
 		if err != nil {
 			return nil, err
 		}
@@ -51,7 +55,7 @@ func (db *DB) GetRecommendations() ([]*Recommendation, error) {
 
 func (db *DB) GetRecommendationsByUser(symbol int) ([]*Recommendation, error) {
 
-	stmt, err := db.Prepare("SELECT idrecs, idusr, idstock, created, lastupdated FROM recs WHERE idusr = ?")
+	stmt, err := db.Prepare("SELECT idrecs, idusr, idstock, created, lastupdated, url FROM recs WHERE idusr = ?")
 	defer stmt.Close()
 	rows, err := stmt.Query(symbol)
 	defer rows.Close()
@@ -66,7 +70,7 @@ func (db *DB) GetRecommendationsByUser(symbol int) ([]*Recommendation, error) {
 	var stc string
 	for rows.Next() {
 		ps := new(Recommendation)
-		err = rows.Scan(&ps.ID, &usr, &stc, &ps.Created, &ps.LastUpdated)
+		err = rows.Scan(&ps.ID, &usr, &stc, &ps.Created, &ps.LastUpdated, &ps.URL)
 		if err != nil {
 			return nil, err
 		}
@@ -101,6 +105,21 @@ func (db *DB) CreateRecommendation(symbol string, user int, meet int) (sql.Resul
 	created := time.Now()
 
 	res, err := stmt.Exec(user, symbol, meet, created, created)
+	if err != nil {
+		return nil, err
+	}
+
+	inserteid, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err = db.Prepare("UPDATE recs SET url=? WHERE idrecs=" + strconv.FormatInt(inserteid, 10))
+	if err != nil {
+		return nil, err
+	}
+
+	res, err = stmt.Exec("/recs/" + strconv.FormatInt(inserteid, 10))
 	if err != nil {
 		return nil, err
 	}
