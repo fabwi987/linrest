@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"database/sql"
+	"strconv"
+	"time"
+)
 
 type User struct {
 	ID          int       `json:"ID" bson:"ID"`
@@ -58,4 +62,37 @@ func (db *DB) GetSingleUser(symbol int) (*User, error) {
 	}
 
 	return tempUser, nil
+}
+
+func (db *DB) CreateUser(name string, phone string, mail string) (sql.Result, error) {
+
+	stmt, err := db.Prepare("INSERT users SET name=?, phone=?, mail=?, created=?, lastupdated=?")
+	if err != nil {
+		return nil, err
+	}
+
+	created := time.Now()
+
+	res, err := stmt.Exec(name, phone, mail, created, created)
+	if err != nil {
+		return nil, err
+	}
+
+	inserteid, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err = db.Prepare("UPDATE users SET url=? WHERE idusers=" + strconv.FormatInt(inserteid, 10))
+	if err != nil {
+		return nil, err
+	}
+
+	res, err = stmt.Exec("/users/" + strconv.FormatInt(inserteid, 10))
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+
 }

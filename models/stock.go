@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"database/sql"
+	"strconv"
+	"time"
+)
 
 //StockDataSaveFormat is the format for saving the stock data
 type Stock struct {
@@ -65,4 +69,37 @@ func (db *DB) GetSingleStock(symbol string) (*Stock, error) {
 	}
 
 	return tempStock, nil
+}
+
+func (db *DB) CreateStock(symbol string, createdorg string, buyprice float64, numberofshares int, salesprice float64, name string, lasttradeprice float64) (sql.Result, error) {
+
+	stmt, err := db.Prepare("INSERT stocks SET symbol=?, created=?, buyprice=?, numberofshare=?, salesprice=?, name=?, lasttradeprice=?, lastupdated=?")
+	if err != nil {
+		return nil, err
+	}
+
+	created := time.Now()
+
+	res, err := stmt.Exec(symbol, createdorg, buyprice, numberofshares, salesprice, name, lasttradeprice, created)
+	if err != nil {
+		return nil, err
+	}
+
+	inserteid, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err = db.Prepare("UPDATE stocks SET url=? WHERE id=" + strconv.FormatInt(inserteid, 10))
+	if err != nil {
+		return nil, err
+	}
+
+	res, err = stmt.Exec("/stocks/" + strconv.FormatInt(inserteid, 10))
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+
 }

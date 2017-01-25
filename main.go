@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 
+	"time"
+
 	"github.com/fabwi987/linrest/models"
 	"github.com/fabwi987/yaho"
 	"github.com/gin-gonic/gin"
@@ -38,8 +40,10 @@ func main() {
 	router.GET("/users/:id", env.GetSingleUserEndpoint)
 	router.GET("/recommendations", env.GetRecommendationsEndpoint)
 	router.GET("/recommendations/:id", env.GetRecommendationsByUsersEndpoint)
+	router.GET("/meet", env.GetMeetsEndpoint)
+	router.GET("/meet/:id", env.GetSingleMeetEndpoint)
 
-	router.GET("/test", env.CreateRecommendationsEndpoint)
+	router.GET("/test", env.CreateMeetEndpoint)
 
 	router.Run(":" + port)
 
@@ -135,4 +139,51 @@ func (env *Env) CreateRecommendationsEndpoint(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	c.JSON(200, recs)
+}
+
+func (env *Env) CreateUserEndpoint(c *gin.Context) {
+
+	recs, err := env.db.CreateUser("John Bannon", "0734352617", "john.bannon@gmail.com")
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, recs)
+}
+
+func (env *Env) CreateStockEndpoint(c *gin.Context) {
+
+	recs, err := env.db.CreateStock("PARA.ST", "20160102", 2, 100, 0, "Parans Solar Ligthning", 2.35)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, recs)
+}
+
+func (env *Env) CreateMeetEndpoint(c *gin.Context) {
+
+	recs, err := env.db.CreateMeet("Stockholm", time.Now(), "Casino Cosmopol")
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, recs)
+}
+
+func (env *Env) GetMeetsEndpoint(c *gin.Context) {
+
+	meets, err := env.db.GetMeets()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, meets)
+}
+
+func (env *Env) GetSingleMeetEndpoint(c *gin.Context) {
+
+	symbol := c.Param("id")
+	intid, err := strconv.Atoi(symbol)
+	meet, err := env.db.GetSingleMeet(intid)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, meet)
 }
