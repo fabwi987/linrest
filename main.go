@@ -43,7 +43,10 @@ func main() {
 	router.GET("/meet", env.GetMeetsEndpoint)
 	router.GET("/meet/:id", env.GetSingleMeetEndpoint)
 
-	router.GET("/test", env.CreateMeetEndpoint)
+	router.POST("/user", env.CreateUserEndpoint)
+	router.POST("/stock", env.CreateStockEndpoint)
+	router.POST("/meet", env.CreateMeetEndpoint)
+	router.POST("/rec", env.CreateRecommendationsEndpoint)
 
 	router.Run(":" + port)
 
@@ -134,7 +137,10 @@ func (env *Env) GetRecommendationsByUsersEndpoint(c *gin.Context) {
 
 func (env *Env) CreateRecommendationsEndpoint(c *gin.Context) {
 
-	recs, err := env.db.CreateRecommendation("CBA.ST", 1, 1)
+	user, err := strconv.Atoi(c.Query("iduser"))
+	meet, err := strconv.Atoi(c.Query("idmeet"))
+
+	recs, err := env.db.CreateRecommendation(c.Query("symbol"), user, meet)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
@@ -143,29 +149,33 @@ func (env *Env) CreateRecommendationsEndpoint(c *gin.Context) {
 
 func (env *Env) CreateUserEndpoint(c *gin.Context) {
 
-	recs, err := env.db.CreateUser("John Bannon", "0734352617", "john.bannon@gmail.com")
+	usr, err := env.db.CreateUser(c.Query("name"), c.Query("phone"), c.Query("mail"))
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
-	c.JSON(200, recs)
+	c.JSON(200, usr)
 }
 
 func (env *Env) CreateStockEndpoint(c *gin.Context) {
 
-	recs, err := env.db.CreateStock("PARA.ST", "20160102", 2, 100, 0, "Parans Solar Ligthning", 2.35)
+	buyprice, err := strconv.ParseFloat(c.Query("buyprice"), 64)
+	lasttradeprice, err := strconv.ParseFloat(c.Query("lasttradeprice"), 64)
+	numberofshares, err := strconv.Atoi(c.Query("numberofshares"))
+
+	stck, err := env.db.CreateStock(c.Query("symbol"), c.Query("created"), buyprice, numberofshares, 0, c.Query("name"), lasttradeprice)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
-	c.JSON(200, recs)
+	c.JSON(200, stck)
 }
 
 func (env *Env) CreateMeetEndpoint(c *gin.Context) {
 
-	recs, err := env.db.CreateMeet("Stockholm", time.Now(), "Casino Cosmopol")
+	met, err := env.db.CreateMeet(c.Query("location"), time.Now(), c.Query("text"))
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
-	c.JSON(200, recs)
+	c.JSON(200, met)
 }
 
 func (env *Env) GetMeetsEndpoint(c *gin.Context) {
