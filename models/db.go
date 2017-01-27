@@ -10,7 +10,7 @@ import (
 type Datastore interface {
 	GetStocks() ([]*Stock, error)
 	GetSingleStock(symbol string) (*Stock, error)
-	CreateStock(symbol string, createdorg string, buyprice float64, numberofshares int, salesprice float64, name string, lasttradeprice float64) (sql.Result, error)
+	CreateStock(symbol string, createdorg time.Time, buyprice float64, numberofshares int, salesprice float64, name string, lasttradeprice float64) (sql.Result, error)
 
 	GetUsers() ([]*User, error)
 	GetSingleUser(symbol int) (*User, error)

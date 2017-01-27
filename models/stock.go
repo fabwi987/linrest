@@ -15,7 +15,7 @@ type Stock struct {
 	Change             float64   `json:"Change" bson:"Change"`
 	BuyPrice           float64   `json:"BuyPrice" bson:"BuyPrice"`
 	NumberOfShares     float64   `json:"NumberOfShares" bson:"NumberOfShares"`
-	Created            string    `json:"created" bson:"Created"`
+	Created            time.Time `json:"created" bson:"Created"`
 	SalesPrice         float64   `json:"SalesPrice" bson:"SalesPrice"`
 	LastUpdated        time.Time `json:"LastUpdated" bson:"LastUpdated"`
 	URL                string    `json:"URL" bson:"URL"`
@@ -71,7 +71,7 @@ func (db *DB) GetSingleStock(symbol string) (*Stock, error) {
 	return tempStock, nil
 }
 
-func (db *DB) CreateStock(symbol string, createdorg string, buyprice float64, numberofshares int, salesprice float64, name string, lasttradeprice float64) (sql.Result, error) {
+func (db *DB) CreateStock(symbol string, createdorg time.Time, buyprice float64, numberofshares int, salesprice float64, name string, lasttradeprice float64) (sql.Result, error) {
 
 	stmt, err := db.Prepare("INSERT stocks SET symbol=?, created=?, buyprice=?, numberofshare=?, salesprice=?, name=?, lasttradeprice=?, lastupdated=?")
 	if err != nil {

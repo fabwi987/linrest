@@ -158,11 +158,13 @@ func (env *Env) CreateUserEndpoint(c *gin.Context) {
 
 func (env *Env) CreateStockEndpoint(c *gin.Context) {
 
-	buyprice, err := strconv.ParseFloat(c.Query("buyprice"), 64)
-	lasttradeprice, err := strconv.ParseFloat(c.Query("lasttradeprice"), 64)
-	numberofshares, err := strconv.Atoi(c.Query("numberofshares"))
+	stcken, err := yaho.GetSingleStocks(c.Query("symbol"))
 
-	stck, err := env.db.CreateStock(c.Query("symbol"), c.Query("created"), buyprice, numberofshares, 0, c.Query("name"), lasttradeprice)
+	buyprice, err := strconv.ParseFloat(c.Query("buyprice"), 64)
+	numberofshares, err := strconv.Atoi(c.Query("numberofshares"))
+	lasttradeprice, err := strconv.ParseFloat(stcken.Query.Results.Quote.LastTradePriceOnly, 64)
+
+	stck, err := env.db.CreateStock(stcken.Query.Results.Quote.Symbol, stcken.Query.Created, buyprice, numberofshares, 0, stcken.Query.Results.Quote.Name, lasttradeprice)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
