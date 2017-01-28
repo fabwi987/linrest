@@ -137,6 +137,17 @@ func (env *Env) GetRecommendationsByUsersEndpoint(c *gin.Context) {
 
 func (env *Env) CreateRecommendationsEndpoint(c *gin.Context) {
 
+	stcken, err := yaho.GetSingleStocks(c.Query("symbol"))
+
+	buyprice, err := strconv.ParseFloat(c.Query("buyprice"), 64)
+	numberofshares, err := strconv.Atoi(c.Query("numberofshares"))
+	lasttradeprice, err := strconv.ParseFloat(stcken.Query.Results.Quote.LastTradePriceOnly, 64)
+
+	_, err = env.db.CreateStock(stcken.Query.Results.Quote.Symbol, stcken.Query.Created, buyprice, numberofshares, 0, stcken.Query.Results.Quote.Name, lasttradeprice)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+
 	user, err := strconv.Atoi(c.Query("iduser"))
 	meet, err := strconv.Atoi(c.Query("idmeet"))
 
@@ -144,6 +155,15 @@ func (env *Env) CreateRecommendationsEndpoint(c *gin.Context) {
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
+
+	recuser, err := env.db.GetSingleUser(user)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+
+	err = models.SendRecommendationMail(recuser.Mail, recuser.Name)
+	err = models.SendRecommendationText(recuser.Phone, recuser.Name)
+
 	c.JSON(200, recs)
 }
 
