@@ -16,7 +16,8 @@ func SendRecommendationMail(toadress string, name string) error {
 	content := mail.NewContent("text/plain", "Hej "+name+"! Tack för din aktierekommendation. Utvecklingen följer du på: www.bit.do/linvestor")
 	m := mail.NewV3MailInit(from, subject, to, content)
 
-	request := sendgrid.GetRequest("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", "/v3/mail/send", "https://api.sendgrid.com")
+	//Removed for GitHub
+	request := sendgrid.GetRequest("", "/v3/mail/send", "https://api.sendgrid.com")
 	request.Method = "POST"
 	request.Body = mail.GetRequestBody(m)
 	response, err := sendgrid.API(request)

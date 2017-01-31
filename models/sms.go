@@ -9,13 +9,15 @@ import (
 
 func SendRecommendationText(PhoneTo string, name string) error {
 
-	accountSid := "ACda82d1d2837367826c0bd6e41d15f30a"
-	authToken := "3fb8953dfe3c0665d74c41623aec0eb3"
+	//Removed for GitHub
+	accountSid := ""
+	authToken := ""
 	urlStr := "https://api.twilio.com/2010-04-01/Accounts/" + accountSid + "/Messages.json"
 
 	v := url.Values{}
 	v.Set("To", PhoneTo)
-	v.Set("From", "+46769437171")
+	//Removed from GitHub
+	v.Set("From", "")
 	v.Set("Body", "Hej "+name+"! Tack för din aktierekommendation. Utvecklingen följer du på: www.bit.do/linvestor")
 	rb := *strings.NewReader(v.Encode())
 
