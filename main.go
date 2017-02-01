@@ -121,6 +121,29 @@ func (env *Env) GetRecommendationsEndpoint(c *gin.Context) {
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
+
+	var symbols string
+	for i := 0; i < len(recs); i++ {
+		symbols = symbols + "," + recs[i].Stck.Symbol
+	}
+
+	latestStocks, err := yaho.GetStocks(symbols)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+
+	for i := 0; i < len(latestStocks.Query.Results.Quote); i++ {
+		tempfloat, err := strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+		recs[i].Stck.LastTradePriceOnly = tempfloat
+	}
+
+	for i := 0; i < len(recs); i++ {
+		recs[i].Stck.Change = ((recs[i].Stck.LastTradePriceOnly / recs[i].Stck.BuyPrice) * 100) - 100
+	}
+
 	c.JSON(200, recs)
 }
 
