@@ -39,7 +39,8 @@ func main() {
 	router.GET("/users", env.GetUsersEndpoint)
 	router.GET("/users/:id", env.GetSingleUserEndpoint)
 	router.GET("/recommendations", env.GetRecommendationsEndpoint)
-	router.GET("/recommendations/:id", env.GetRecommendationsByUsersEndpoint)
+	router.GET("/recommendations/user/:id", env.GetRecommendationsByUsersEndpoint)
+	router.GET("/recommendations/meet/:id", env.GetRecommendationsByMeetEndpoint)
 	router.GET("/meet", env.GetMeetsEndpoint)
 	router.GET("/meet/:id", env.GetSingleMeetEndpoint)
 
@@ -152,6 +153,17 @@ func (env *Env) GetRecommendationsByUsersEndpoint(c *gin.Context) {
 	symbol := c.Param("id")
 	intid, err := strconv.Atoi(symbol)
 	recs, err := env.db.GetRecommendationsByUser(intid)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, recs)
+}
+
+func (env *Env) GetRecommendationsByMeetEndpoint(c *gin.Context) {
+
+	symbol := c.Param("id")
+	intid, err := strconv.Atoi(symbol)
+	recs, err := env.db.GetRecommendationsByMeet(intid)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}

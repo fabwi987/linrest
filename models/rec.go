@@ -10,6 +10,7 @@ type Recommendation struct {
 	ID          int       `json:"ID" bson:"ID"`
 	Usr         *User     `json:"User" bson:"User"`
 	Stck        *Stock    `json:"Stock" bson:"Stock"`
+	Meet        *Meet     `json:"Meet" bson:"Meet"`
 	Created     time.Time `json:"Created" bson:"Created"`
 	LastUpdated time.Time `json:"LastUpdated" bson:"LastUpdated"`
 	URL         string    `json:"URL" bson:"URL"`
@@ -17,7 +18,7 @@ type Recommendation struct {
 
 func (db *DB) GetRecommendations() ([]*Recommendation, error) {
 
-	rows, err := db.Query("SELECT idrecs, idusr, idstock, created, lastupdated, url FROM recs")
+	rows, err := db.Query("SELECT idrecs, idusr, idstock, idmeet, created, lastupdated, url FROM recs")
 	if err != nil {
 		return nil, err
 	}
@@ -26,9 +27,10 @@ func (db *DB) GetRecommendations() ([]*Recommendation, error) {
 	poss := make([]*Recommendation, 0)
 	var usr int
 	var stc string
+	var mt int
 	for rows.Next() {
 		ps := new(Recommendation)
-		err = rows.Scan(&ps.ID, &usr, &stc, &ps.Created, &ps.LastUpdated, &ps.URL)
+		err = rows.Scan(&ps.ID, &usr, &stc, &mt, &ps.Created, &ps.LastUpdated, &ps.URL)
 		if err != nil {
 			return nil, err
 		}
@@ -39,6 +41,11 @@ func (db *DB) GetRecommendations() ([]*Recommendation, error) {
 		}
 
 		ps.Stck, err = db.GetSingleStock(stc)
+		if err != nil {
+			return nil, err
+		}
+
+		ps.Meet, err = db.GetSingleMeet(mt)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +62,59 @@ func (db *DB) GetRecommendations() ([]*Recommendation, error) {
 
 func (db *DB) GetRecommendationsByUser(symbol int) ([]*Recommendation, error) {
 
-	stmt, err := db.Prepare("SELECT idrecs, idusr, idstock, created, lastupdated, url FROM recs WHERE idusr = ?")
+	stmt, err := db.Prepare("SELECT idrecs, idusr, idstock, idmeet, created, lastupdated, url FROM recs WHERE idusr = ?")
+	defer stmt.Close()
+	rows, err := stmt.Query(symbol)
+	defer rows.Close()
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	poss := make([]*Recommendation, 0)
+	var usr int
+	var stc string
+	var mt int
+	for rows.Next() {
+		ps := new(Recommendation)
+		err = rows.Scan(&ps.ID, &usr, &stc, &mt, &ps.Created, &ps.LastUpdated, &ps.URL)
+		if err != nil {
+			return nil, err
+		}
+
+		ps.Usr, err = db.GetSingleUser(usr)
+		if err != nil {
+			return nil, err
+		}
+
+		ps.Stck, err = db.GetSingleStock(stc)
+		if err != nil {
+			return nil, err
+		}
+
+		ps.Meet, err = db.GetSingleMeet(mt)
+		if err != nil {
+			return nil, err
+		}
+
+		poss = append(poss, ps)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return poss, nil
+}
+
+func (db *DB) GetRecommendationsByMeet(symbol int) ([]*Recommendation, error) {
+
+	stmt, err := db.Prepare("SELECT idrecs, idusr, idstock, idmeet, created, lastupdated, url FROM recs WHERE idmeet = ?")
 	defer stmt.Close()
 	rows, err := stmt.Query(symbol)
 	defer rows.Close()
@@ -68,9 +127,10 @@ func (db *DB) GetRecommendationsByUser(symbol int) ([]*Recommendation, error) {
 	poss := make([]*Recommendation, 0)
 	var usr int
 	var stc string
+	var mt int
 	for rows.Next() {
 		ps := new(Recommendation)
-		err = rows.Scan(&ps.ID, &usr, &stc, &ps.Created, &ps.LastUpdated, &ps.URL)
+		err = rows.Scan(&ps.ID, &usr, &stc, &mt, &ps.Created, &ps.LastUpdated, &ps.URL)
 		if err != nil {
 			return nil, err
 		}
@@ -81,6 +141,11 @@ func (db *DB) GetRecommendationsByUser(symbol int) ([]*Recommendation, error) {
 		}
 
 		ps.Stck, err = db.GetSingleStock(stc)
+		if err != nil {
+			return nil, err
+		}
+
+		ps.Meet, err = db.GetSingleMeet(mt)
 		if err != nil {
 			return nil, err
 		}

@@ -18,6 +18,7 @@ type Datastore interface {
 
 	GetRecommendations() ([]*Recommendation, error)
 	GetRecommendationsByUser(symbol int) ([]*Recommendation, error)
+	GetRecommendationsByMeet(symbol int) ([]*Recommendation, error)
 	CreateRecommendation(symbol string, user int, meet int) (sql.Result, error)
 
 	GetMeets() ([]*Meet, error)
