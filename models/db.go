@@ -23,7 +23,8 @@ type Datastore interface {
 
 	GetMeets() ([]*Meet, error)
 	GetSingleMeet(id int) (*Meet, error)
-	CreateMeet(location string, date time.Time, text string) (sql.Result, error)
+	GetMeetsByUser(userid int) ([]*Meet, error)
+	CreateMeet(location string, date time.Time, text string, user int) (sql.Result, error)
 }
 
 type DB struct {

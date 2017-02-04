@@ -14,11 +14,12 @@ type Meet struct {
 	Created     time.Time `json:"Created" bson:"Created"`
 	LastUpdated time.Time `json:"LastUpdated" bson:"LastUpdated"`
 	URL         string    `json:"URL" bson:"URL"`
+	IDUser      int       `json:"IDuser" bson:"IDuser"`
 }
 
 func (db *DB) GetMeets() ([]*Meet, error) {
 
-	rows, err := db.Query("SELECT idmeet, location, date, text, created, lastupdated, url FROM meet")
+	rows, err := db.Query("SELECT idmeet, location, date, text, created, lastupdated, url, iduser FROM meet")
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +28,7 @@ func (db *DB) GetMeets() ([]*Meet, error) {
 	poss := make([]*Meet, 0)
 	for rows.Next() {
 		ps := new(Meet)
-		err = rows.Scan(&ps.ID, &ps.Location, &ps.Date, &ps.Text, &ps.Created, &ps.LastUpdated, &ps.URL)
+		err = rows.Scan(&ps.ID, &ps.Location, &ps.Date, &ps.Text, &ps.Created, &ps.LastUpdated, &ps.URL, &ps.IDUser)
 		if err != nil {
 			return nil, err
 		}
@@ -43,14 +44,14 @@ func (db *DB) GetMeets() ([]*Meet, error) {
 
 func (db *DB) GetSingleMeet(id int) (*Meet, error) {
 
-	stmt, err := db.Prepare("SELECT idmeet, location, date, text, created, lastupdated, url FROM meet WHERE idmeet=?")
+	stmt, err := db.Prepare("SELECT idmeet, location, date, text, created, lastupdated, url, iduser FROM meet WHERE idmeet=?")
 	defer stmt.Close()
 	rows, err := stmt.Query(id)
 	defer rows.Close()
-	tempUser := new(Meet)
+	tempMeet := new(Meet)
 
 	for rows.Next() {
-		err := rows.Scan(&tempUser.ID, &tempUser.Location, &tempUser.Date, &tempUser.Text, &tempUser.Created, &tempUser.LastUpdated, &tempUser.URL)
+		err := rows.Scan(&tempMeet.ID, &tempMeet.Location, &tempMeet.Date, &tempMeet.Text, &tempMeet.Created, &tempMeet.LastUpdated, &tempMeet.URL, &tempMeet.IDUser)
 		if err != nil {
 			return nil, err
 		}
@@ -60,19 +61,43 @@ func (db *DB) GetSingleMeet(id int) (*Meet, error) {
 		return nil, err
 	}
 
-	return tempUser, nil
+	return tempMeet, nil
 }
 
-func (db *DB) CreateMeet(location string, date time.Time, text string) (sql.Result, error) {
+func (db *DB) GetMeetsByUser(userid int) ([]*Meet, error) {
 
-	stmt, err := db.Prepare("INSERT meet SET location=?, date=?, text=?, created=?, lastupdated=?")
+	stmt, err := db.Prepare("SELECT idmeet, location, date, text, created, lastupdated, url, iduser FROM meet WHERE iduser=?")
+	defer stmt.Close()
+	rows, err := stmt.Query(userid)
+	defer rows.Close()
+
+	poss := make([]*Meet, 0)
+	for rows.Next() {
+		ps := new(Meet)
+		err = rows.Scan(&ps.ID, &ps.Location, &ps.Date, &ps.Text, &ps.Created, &ps.LastUpdated, &ps.URL, &ps.IDUser)
+		if err != nil {
+			return nil, err
+		}
+		poss = append(poss, ps)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return poss, nil
+}
+
+func (db *DB) CreateMeet(location string, date time.Time, text string, user int) (sql.Result, error) {
+
+	stmt, err := db.Prepare("INSERT meet SET location=?, date=?, text=?, created=?, lastupdated=?, iduser=?")
 	if err != nil {
 		return nil, err
 	}
 
 	created := time.Now()
 
-	res, err := stmt.Exec(location, date, text, created, created)
+	res, err := stmt.Exec(location, date, text, created, created, user)
 	if err != nil {
 		return nil, err
 	}

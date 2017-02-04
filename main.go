@@ -36,13 +36,17 @@ func main() {
 
 	router.GET("/stocks", env.GetStocksEndpoint)
 	router.GET("/stocks/:symbol", env.GetSingleStocksEndpoint)
+
 	router.GET("/users", env.GetUsersEndpoint)
-	router.GET("/users/:id", env.GetSingleUserEndpoint)
+	router.GET("/users/single/:id", env.GetSingleUserEndpoint)
+
 	router.GET("/recommendations", env.GetRecommendationsEndpoint)
 	router.GET("/recommendations/user/:id", env.GetRecommendationsByUsersEndpoint)
 	router.GET("/recommendations/meet/:id", env.GetRecommendationsByMeetEndpoint)
+
 	router.GET("/meet", env.GetMeetsEndpoint)
-	router.GET("/meet/:id", env.GetSingleMeetEndpoint)
+	router.GET("/meet/single/:id", env.GetSingleMeetEndpoint)
+	router.GET("/meet/user/:id", env.GetMeetByUserEndpoint)
 
 	router.POST("/user", env.CreateUserEndpoint)
 	router.POST("/stock", env.CreateStockEndpoint)
@@ -228,7 +232,8 @@ func (env *Env) CreateStockEndpoint(c *gin.Context) {
 
 func (env *Env) CreateMeetEndpoint(c *gin.Context) {
 
-	met, err := env.db.CreateMeet(c.Query("location"), time.Now(), c.Query("text"))
+	user, err := strconv.Atoi(c.Query("userid"))
+	met, err := env.db.CreateMeet(c.Query("location"), time.Now(), c.Query("text"), user)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
@@ -249,6 +254,17 @@ func (env *Env) GetSingleMeetEndpoint(c *gin.Context) {
 	symbol := c.Param("id")
 	intid, err := strconv.Atoi(symbol)
 	meet, err := env.db.GetSingleMeet(intid)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, meet)
+}
+
+func (env *Env) GetMeetByUserEndpoint(c *gin.Context) {
+
+	symbol := c.Param("id")
+	intid, err := strconv.Atoi(symbol)
+	meet, err := env.db.GetMeetsByUser(intid)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
