@@ -29,6 +29,7 @@ type Datastore interface {
 
 	GetTransactionsByUser(userid int) ([]*Transaction, error)
 	SumTransactionsByUser(userid int) (int, error)
+	CreateTransaction(rec int, user int, reward int) (sql.Result, error)
 }
 
 type DB struct {

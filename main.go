@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 
 	"time"
@@ -56,6 +57,7 @@ func main() {
 	router.POST("/stock", env.CreateStockEndpoint)
 	router.POST("/meet", env.CreateMeetEndpoint)
 	router.POST("/rec", env.CreateRecommendationsEndpoint)
+	router.POST("/trans", env.CreateTransactionEndpoint)
 
 	router.Run(":" + port)
 
@@ -126,15 +128,18 @@ func (env *Env) GetSingleUserEndpoint(c *gin.Context) {
 
 func (env *Env) GetUserLeaderboardEndpoint(c *gin.Context) {
 
+	var usr models.Users
 	usr, err := env.db.GetUsersLeaderboard()
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
+	sort.Sort(usr)
 	c.JSON(200, usr)
 }
 
 func (env *Env) GetRecommendationsEndpoint(c *gin.Context) {
 
+	var recs models.Recommendations
 	recs, err := env.db.GetRecommendations()
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -161,6 +166,8 @@ func (env *Env) GetRecommendationsEndpoint(c *gin.Context) {
 	for i := 0; i < len(recs); i++ {
 		recs[i].Stck.Change = ((recs[i].Stck.LastTradePriceOnly / recs[i].Stck.BuyPrice) * 100) - 100
 	}
+
+	sort.Sort(recs)
 
 	c.JSON(200, recs)
 }
@@ -304,4 +311,17 @@ func (env *Env) SumTransactionsByUserEndpoint(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	c.JSON(200, trans)
+}
+
+func (env *Env) CreateTransactionEndpoint(c *gin.Context) {
+
+	rec, err := strconv.Atoi(c.Query("recommendation"))
+	user, err := strconv.Atoi(c.Query("user"))
+	reward, err := strconv.Atoi(c.Query("reward"))
+
+	usr, err := env.db.CreateTransaction(rec, user, reward)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, usr)
 }

@@ -16,6 +16,14 @@ type Recommendation struct {
 	URL         string    `json:"URL" bson:"URL"`
 }
 
+type Recommendations []*Recommendation
+
+func (slice Recommendations) Len() int { return len(slice) }
+func (slice Recommendations) Less(i, j int) bool {
+	return slice[i].Stck.Change > slice[j].Stck.Change
+}
+func (slice Recommendations) Swap(i, j int) { slice[i], slice[j] = slice[j], slice[i] }
+
 func (db *DB) GetRecommendations() ([]*Recommendation, error) {
 
 	rows, err := db.Query("SELECT idrecs, idusr, idstock, idmeet, created, lastupdated, url FROM recs")

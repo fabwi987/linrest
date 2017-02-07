@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"database/sql"
+	"strconv"
+	"time"
+)
 
 type Transaction struct {
 	ID             int       `json:"ID" bson:"ID"`
@@ -56,4 +60,37 @@ func (db *DB) SumTransactionsByUser(userid int) (int, error) {
 	}
 
 	return sum, nil
+}
+
+func (db *DB) CreateTransaction(rec int, user int, reward int) (sql.Result, error) {
+
+	stmt, err := db.Prepare("INSERT trans SET idrec=?, iduser=?, reward=?, created=?, lastupdated=?")
+	if err != nil {
+		return nil, err
+	}
+
+	created := time.Now()
+
+	res, err := stmt.Exec(rec, user, reward, created, created)
+	if err != nil {
+		return nil, err
+	}
+
+	inserteid, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err = db.Prepare("UPDATE trans SET url=? WHERE idtrans=" + strconv.FormatInt(inserteid, 10))
+	if err != nil {
+		return nil, err
+	}
+
+	res, err = stmt.Exec("/trans/" + strconv.FormatInt(inserteid, 10))
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+
 }

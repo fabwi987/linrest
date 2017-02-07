@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"sort"
 	"strconv"
 	"time"
 )
@@ -104,8 +103,6 @@ func (db *DB) GetUsersLeaderboard() ([]*User, error) {
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
-
-	sort.Sort(usrs)
 
 	return usrs, nil
 }
