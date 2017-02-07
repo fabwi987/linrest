@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -11,11 +12,19 @@ type User struct {
 	Name        string    `json:"Name" bson:"Name"`
 	Phone       string    `json:"Phone" bson:"Phone"`
 	Mail        string    `json:"Mail" bson:"Mail"`
-	Score       *int      `json:"Score" bson:"Score"`
+	Score       int       `json:"Score" bson:"Score"`
 	Created     time.Time `json:"Created" bson:"Created"`
 	LastUpdated time.Time `json:"LastUpdated" bson:"LastUpdated"`
 	URL         string    `json:"URL" bson:"URL"`
 }
+
+type Users []*User
+
+func (slice Users) Len() int { return len(slice) }
+func (slice Users) Less(i, j int) bool {
+	return slice[i].Score > slice[j].Score
+}
+func (slice Users) Swap(i, j int) { slice[i], slice[j] = slice[j], slice[i] }
 
 func (db *DB) GetUsers() ([]*User, error) {
 
@@ -73,7 +82,8 @@ func (db *DB) GetUsersLeaderboard() ([]*User, error) {
 	}
 	defer rows.Close()
 
-	usrs := make([]*User, 0)
+	//usrs := make(Users, 0)
+	var usrs Users
 	var iduser int
 	for rows.Next() {
 		tempUser := new(User)
@@ -94,6 +104,8 @@ func (db *DB) GetUsersLeaderboard() ([]*User, error) {
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
+
+	sort.Sort(usrs)
 
 	return usrs, nil
 }
