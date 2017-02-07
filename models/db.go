@@ -14,6 +14,7 @@ type Datastore interface {
 
 	GetUsers() ([]*User, error)
 	GetSingleUser(symbol int) (*User, error)
+	GetUsersLeaderboard() ([]*User, error)
 	CreateUser(name string, phone string, mail string) (sql.Result, error)
 
 	GetRecommendations() ([]*Recommendation, error)
@@ -25,6 +26,9 @@ type Datastore interface {
 	GetSingleMeet(id int) (*Meet, error)
 	GetMeetsByUser(userid int) ([]*Meet, error)
 	CreateMeet(location string, date time.Time, text string, user int) (sql.Result, error)
+
+	GetTransactionsByUser(userid int) ([]*Transaction, error)
+	SumTransactionsByUser(userid int) (*int, error)
 }
 
 type DB struct {

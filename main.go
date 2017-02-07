@@ -39,6 +39,7 @@ func main() {
 
 	router.GET("/users", env.GetUsersEndpoint)
 	router.GET("/users/single/:id", env.GetSingleUserEndpoint)
+	router.GET("/users/leaderboard", env.GetUserLeaderboardEndpoint)
 
 	router.GET("/recommendations", env.GetRecommendationsEndpoint)
 	router.GET("/recommendations/user/:id", env.GetRecommendationsByUsersEndpoint)
@@ -47,6 +48,9 @@ func main() {
 	router.GET("/meet", env.GetMeetsEndpoint)
 	router.GET("/meet/single/:id", env.GetSingleMeetEndpoint)
 	router.GET("/meet/user/:id", env.GetMeetByUserEndpoint)
+
+	router.GET("/trans/byuser/:id", env.GetTransactionsByUserEndpoint)
+	router.GET("/trans/total/:id", env.SumTransactionsByUserEndpoint)
 
 	router.POST("/user", env.CreateUserEndpoint)
 	router.POST("/stock", env.CreateStockEndpoint)
@@ -114,6 +118,15 @@ func (env *Env) GetSingleUserEndpoint(c *gin.Context) {
 	symbol := c.Param("id")
 	intid, err := strconv.Atoi(symbol)
 	usr, err := env.db.GetSingleUser(intid)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, usr)
+}
+
+func (env *Env) GetUserLeaderboardEndpoint(c *gin.Context) {
+
+	usr, err := env.db.GetUsersLeaderboard()
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
@@ -269,4 +282,26 @@ func (env *Env) GetMeetByUserEndpoint(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	c.JSON(200, meet)
+}
+
+func (env *Env) GetTransactionsByUserEndpoint(c *gin.Context) {
+
+	symbol := c.Param("id")
+	intid, err := strconv.Atoi(symbol)
+	trans, err := env.db.GetTransactionsByUser(intid)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, trans)
+}
+
+func (env *Env) SumTransactionsByUserEndpoint(c *gin.Context) {
+
+	symbol := c.Param("id")
+	intid, err := strconv.Atoi(symbol)
+	trans, err := env.db.SumTransactionsByUser(intid)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+	c.JSON(200, trans)
 }

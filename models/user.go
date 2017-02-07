@@ -11,6 +11,7 @@ type User struct {
 	Name        string    `json:"Name" bson:"Name"`
 	Phone       string    `json:"Phone" bson:"Phone"`
 	Mail        string    `json:"Mail" bson:"Mail"`
+	Score       *int      `json:"Score" bson:"Score"`
 	Created     time.Time `json:"Created" bson:"Created"`
 	LastUpdated time.Time `json:"LastUpdated" bson:"LastUpdated"`
 	URL         string    `json:"URL" bson:"URL"`
@@ -62,6 +63,39 @@ func (db *DB) GetSingleUser(symbol int) (*User, error) {
 	}
 
 	return tempUser, nil
+}
+
+func (db *DB) GetUsersLeaderboard() ([]*User, error) {
+
+	rows, err := db.Query("SELECT idusers, name, phone, mail, created, lastupdated, url FROM users")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	usrs := make([]*User, 0)
+	var iduser int
+	for rows.Next() {
+		tempUser := new(User)
+		err = rows.Scan(&tempUser.ID, &tempUser.Name, &tempUser.Phone, &tempUser.Mail, &tempUser.Created, &tempUser.LastUpdated, &tempUser.URL)
+		if err != nil {
+			return nil, err
+		}
+
+		iduser = tempUser.ID
+		tempUser.Score, err = db.SumTransactionsByUser(iduser)
+		if err != nil {
+			return nil, err
+		}
+
+		usrs = append(usrs, tempUser)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return usrs, nil
 }
 
 func (db *DB) CreateUser(name string, phone string, mail string) (sql.Result, error) {
