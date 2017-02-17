@@ -56,6 +56,7 @@ func main() {
 	router.POST("/user", env.CreateUserEndpoint)
 	router.POST("/stock", env.CreateStockEndpoint)
 	router.POST("/meet", env.CreateMeetEndpoint)
+	router.POST("/meet/reward", env.RewardMeetEndpoint)
 	router.POST("/rec", env.CreateRecommendationsEndpoint)
 	router.POST("/trans", env.CreateTransactionEndpoint)
 
@@ -156,11 +157,13 @@ func (env *Env) GetRecommendationsEndpoint(c *gin.Context) {
 	}
 
 	for i := 0; i < len(latestStocks.Query.Results.Quote); i++ {
+
 		tempfloat, err := strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 		recs[i].Stck.LastTradePriceOnly = tempfloat
+
 	}
 
 	for i := 0; i < len(recs); i++ {
@@ -324,4 +327,45 @@ func (env *Env) CreateTransactionEndpoint(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	c.JSON(200, usr)
+}
+
+func (env *Env) RewardMeetEndpoint(c *gin.Context) {
+
+	symbol := c.Query("id")
+	intid, err := strconv.Atoi(symbol)
+	var recs models.Recommendations
+	recs, err = env.db.GetRecommendationsByMeet(intid)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+
+	var symbols string
+	for i := 0; i < len(recs); i++ {
+		symbols = symbols + "," + recs[i].Stck.Symbol
+	}
+
+	latestStocks, err := yaho.GetStocks(symbols)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+
+	for i := 0; i < len(latestStocks.Query.Results.Quote); i++ {
+
+		tempfloat, err := strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+		recs[i].Stck.LastTradePriceOnly = tempfloat
+
+	}
+
+	for i := 0; i < len(recs); i++ {
+		recs[i].Stck.Change = ((recs[i].Stck.LastTradePriceOnly / recs[i].Stck.BuyPrice) * 100) - 100
+	}
+
+	sort.Sort(recs)
+
+	resp, err := env.db.CreateTransaction(recs[1].ID, recs[1].Usr.ID, 100)
+
+	c.JSON(200, resp)
 }
