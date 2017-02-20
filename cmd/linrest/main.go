@@ -34,6 +34,9 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.LoadHTMLGlob("templates/*.html")
+
+	router.GET("/start", env.GetStartEndpoint)
 
 	router.GET("/stocks", env.GetStocksEndpoint)
 	router.GET("/stocks/:symbol", env.GetSingleStocksEndpoint)
@@ -173,6 +176,10 @@ func (env *Env) GetRecommendationsEndpoint(c *gin.Context) {
 	sort.Sort(recs)
 
 	c.JSON(200, recs)
+}
+
+func (env *Env) GetStartEndpoint(c *gin.Context) {
+	c.HTML(http.StatusOK, "start.html", nil)
 }
 
 func (env *Env) GetRecommendationsByUsersEndpoint(c *gin.Context) {
