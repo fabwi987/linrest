@@ -20,7 +20,7 @@ type Env struct {
 
 func main() {
 	//db, err := models.NewDB("root:trustno1@/test?parseTime=true")
-	db, err := models.NewDB("b5fda560229b16:10275c0d@tcp(us-cdbr-iron-east-04.cleardb.net:3306)/heroku_949c9d7c3962055?parseTime=true")
+	db, err := models.NewDB("ba67093beafab5:c424c6b0@tcp(us-cdbr-iron-east-04.cleardb.net:3306)/heroku_f2d060503ce9b77?parseTime=true")
 
 	if err != nil {
 		log.Panic(err)
