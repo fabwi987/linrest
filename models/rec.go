@@ -20,7 +20,7 @@ type Recommendations []*Recommendation
 
 func (slice Recommendations) Len() int { return len(slice) }
 func (slice Recommendations) Less(i, j int) bool {
-	return slice[i].Stck.Change > slice[j].Stck.Change
+	return (slice[i].Stck.LastTradePriceOnly / slice[i].Stck.BuyPrice) > (slice[j].Stck.LastTradePriceOnly / slice[j].Stck.BuyPrice)
 }
 func (slice Recommendations) Swap(i, j int) { slice[i], slice[j] = slice[j], slice[i] }
 
