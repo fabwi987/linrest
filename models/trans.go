@@ -40,7 +40,7 @@ func (db *DB) GetTransactionsByUser(userid int) ([]*Transaction, error) {
 	return trans, nil
 }
 
-func (db *DB) SumTransactionsByUser(userid int) (int, error) {
+func (db *DB) SumTransactionsByUser(userid int) int {
 
 	stmt, err := db.Prepare("SELECT SUM(reward) AS TotalReward FROM test.trans WHERE iduser=?")
 	defer stmt.Close()
@@ -51,15 +51,14 @@ func (db *DB) SumTransactionsByUser(userid int) (int, error) {
 	for rows.Next() {
 		err = rows.Scan(&sum)
 		if err != nil {
-			return 0, err
+			return 0
 		}
 	}
 
 	if err = rows.Err(); err != nil {
-		return 0, err
+		return 0
 	}
-
-	return sum, nil
+	return sum
 }
 
 func (db *DB) CreateTransaction(rec int, user int, reward int) (sql.Result, error) {

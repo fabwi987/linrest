@@ -28,7 +28,7 @@ type Datastore interface {
 	CreateMeet(location string, date time.Time, text string, user int) (sql.Result, error)
 
 	GetTransactionsByUser(userid int) ([]*Transaction, error)
-	SumTransactionsByUser(userid int) (int, error)
+	SumTransactionsByUser(userid int) int
 	CreateTransaction(rec int, user int, reward int) (sql.Result, error)
 }
 

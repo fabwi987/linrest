@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/fabwi987/linrest/models"
-	"github.com/fabwi987/yaho"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,6 +19,9 @@ type Env struct {
 
 func main() {
 	db, err := models.NewDB("root:trustno1@/test?parseTime=true")
+	//db, err := models.NewDB("ba67093beafab5:c424c6b0@tcp(us-cdbr-iron-east-04.cleardb.net:3306)/heroku_f2d060503ce9b77?parseTime=true")
+	//added a comment here
+
 	if err != nil {
 		log.Panic(err)
 	}
@@ -34,6 +36,7 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.LoadHTMLGlob("templates/*.html")
 
 	router.GET("/stocks", env.GetStocksEndpoint)
 	router.GET("/stocks/:symbol", env.GetSingleStocksEndpoint)
@@ -76,22 +79,45 @@ func (env *Env) GetStocksEndpoint(c *gin.Context) {
 		symbols = symbols + "," + stocks[i].Symbol
 	}
 
-	latestStocks, err := yaho.GetStocks(symbols)
+	if len(stocks) > 1 {
+		latestStocks, err := models.GetStocks(symbols)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+		for i := 0; i < len(latestStocks.Query.Results.Quote); i++ {
+			var tempfloat float64
+			tempfloat, err := strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+			}
+			stocks[i].LastTradePriceOnly = tempfloat
 
-	for i := 0; i < len(latestStocks.Query.Results.Quote); i++ {
+			tempfloat, err = strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+			}
+			tempfloat = tempfloat / stocks[i].BuyPrice
+			stocks[i].Change = tempfloat
+		}
+
+	} else {
+		latestStocks, err := models.GetSingleStocks(symbols)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
 		var tempfloat float64
-		tempfloat, err := strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
+		tempfloat, err = strconv.ParseFloat(latestStocks.Query.Results.Quote.LastTradePriceOnly, 64)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
-		stocks[i].LastTradePriceOnly = tempfloat
+		stocks[0].LastTradePriceOnly = tempfloat
 
-		tempfloat, err = strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
+		tempfloat, err = strconv.ParseFloat(latestStocks.Query.Results.Quote.LastTradePriceOnly, 64)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
-		tempfloat = tempfloat / stocks[i].BuyPrice
-		stocks[i].Change = tempfloat
+		tempfloat = tempfloat / stocks[0].BuyPrice
+		stocks[0].Change = tempfloat
 	}
 
 	c.JSON(200, stocks)
@@ -151,19 +177,31 @@ func (env *Env) GetRecommendationsEndpoint(c *gin.Context) {
 		symbols = symbols + "," + recs[i].Stck.Symbol
 	}
 
-	latestStocks, err := yaho.GetStocks(symbols)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-	}
-
-	for i := 0; i < len(latestStocks.Query.Results.Quote); i++ {
-
-		tempfloat, err := strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
+	if len(recs) > 1 {
+		latestStocks, err := models.GetStocks(symbols)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
-		recs[i].Stck.LastTradePriceOnly = tempfloat
+		for i := 0; i < len(latestStocks.Query.Results.Quote); i++ {
 
+			tempfloat, err := strconv.ParseFloat(latestStocks.Query.Results.Quote[i].LastTradePriceOnly, 64)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+			}
+			recs[i].Stck.LastTradePriceOnly = tempfloat
+
+		}
+
+	} else {
+		latestStocks, err := models.GetSingleStocks(symbols)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+		tempfloat, err := strconv.ParseFloat(latestStocks.Query.Results.Quote.LastTradePriceOnly, 64)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+		recs[0].Stck.LastTradePriceOnly = tempfloat
 	}
 
 	for i := 0; i < len(recs); i++ {
@@ -173,6 +211,10 @@ func (env *Env) GetRecommendationsEndpoint(c *gin.Context) {
 	sort.Sort(recs)
 
 	c.JSON(200, recs)
+}
+
+func (env *Env) GetStartEndpoint(c *gin.Context) {
+	c.HTML(http.StatusOK, "start.html", nil)
 }
 
 func (env *Env) GetRecommendationsByUsersEndpoint(c *gin.Context) {
@@ -199,7 +241,7 @@ func (env *Env) GetRecommendationsByMeetEndpoint(c *gin.Context) {
 
 func (env *Env) CreateRecommendationsEndpoint(c *gin.Context) {
 
-	stcken, err := yaho.GetSingleStocks(c.Query("symbol"))
+	stcken, err := models.GetSingleStocks(c.Query("symbol"))
 
 	buyprice, err := strconv.ParseFloat(c.Query("buyprice"), 64)
 	numberofshares, err := strconv.Atoi(c.Query("numberofshares"))
@@ -223,8 +265,8 @@ func (env *Env) CreateRecommendationsEndpoint(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 
-	err = models.SendRecommendationMail(recuser.Mail, recuser.Name)
-	err = models.SendRecommendationText(recuser.Phone, recuser.Name)
+	//err = models.SendRecommendationMail(recuser.Mail, recuser.Name)
+	err = models.SendRecommendationText(recuser.Phone, recuser.Name, stcken.Query.Results.Quote.Name)
 
 	c.JSON(200, recs)
 }
@@ -240,11 +282,15 @@ func (env *Env) CreateUserEndpoint(c *gin.Context) {
 
 func (env *Env) CreateStockEndpoint(c *gin.Context) {
 
-	stcken, err := yaho.GetSingleStocks(c.Query("symbol"))
+	stcken, err := models.GetSingleStocks(c.Query("symbol"))
 
 	buyprice, err := strconv.ParseFloat(c.Query("buyprice"), 64)
 	numberofshares, err := strconv.Atoi(c.Query("numberofshares"))
 	lasttradeprice, err := strconv.ParseFloat(stcken.Query.Results.Quote.LastTradePriceOnly, 64)
+
+	log.Println("Hämtar en stock:")
+	log.Println(stcken.Query.Results.Quote.Name)
+	log.Println(stcken.Query.Results.Quote.LastTradePriceOnly)
 
 	stck, err := env.db.CreateStock(stcken.Query.Results.Quote.Symbol, stcken.Query.Created, buyprice, numberofshares, 0, stcken.Query.Results.Quote.Name, lasttradeprice)
 	if err != nil {
@@ -309,7 +355,7 @@ func (env *Env) SumTransactionsByUserEndpoint(c *gin.Context) {
 
 	symbol := c.Param("id")
 	intid, err := strconv.Atoi(symbol)
-	trans, err := env.db.SumTransactionsByUser(intid)
+	trans := env.db.SumTransactionsByUser(intid)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
@@ -344,7 +390,7 @@ func (env *Env) RewardMeetEndpoint(c *gin.Context) {
 		symbols = symbols + "," + recs[i].Stck.Symbol
 	}
 
-	latestStocks, err := yaho.GetStocks(symbols)
+	latestStocks, err := models.GetStocks(symbols)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}

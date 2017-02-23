@@ -92,7 +92,7 @@ func (db *DB) GetUsersLeaderboard() ([]*User, error) {
 		}
 
 		iduser = tempUser.ID
-		tempUser.Score, err = db.SumTransactionsByUser(iduser)
+		tempUser.Score = db.SumTransactionsByUser(iduser)
 		if err != nil {
 			return nil, err
 		}
