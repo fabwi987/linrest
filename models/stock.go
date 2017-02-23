@@ -12,10 +12,11 @@ type Stock struct {
 	Name               string    `json:"Name" bson:"Name"`
 	Symbol             string    `json:"Symbol" bson:"Symbol"`
 	LastTradePriceOnly float64   `json:"LastTradePriceOnly" bson:"LastTradePriceOnly"`
-	Change             float64   `json:"Change" bson:"Change"`
+	Change             string    `json:"Change" bson:"Change"`
 	BuyPrice           float64   `json:"BuyPrice" bson:"BuyPrice"`
 	NumberOfShares     float64   `json:"NumberOfShares" bson:"NumberOfShares"`
 	Created            time.Time `json:"created" bson:"Created"`
+	Color              string    `json:"Color" bson:"Color"`
 	SalesPrice         float64   `json:"SalesPrice" bson:"SalesPrice"`
 	LastUpdated        time.Time `json:"LastUpdated" bson:"LastUpdated"`
 	URL                string    `json:"URL" bson:"URL"`

@@ -97,7 +97,7 @@ func (env *Env) GetStocksEndpoint(c *gin.Context) {
 				c.AbortWithError(http.StatusInternalServerError, err)
 			}
 			tempfloat = tempfloat / stocks[i].BuyPrice
-			stocks[i].Change = tempfloat
+			stocks[i].Change = strconv.FormatFloat(tempfloat, 'f', 2, 64)
 		}
 
 	} else {
@@ -117,7 +117,7 @@ func (env *Env) GetStocksEndpoint(c *gin.Context) {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 		tempfloat = tempfloat / stocks[0].BuyPrice
-		stocks[0].Change = tempfloat
+		stocks[0].Change = strconv.FormatFloat(tempfloat, 'f', 2, 64)
 	}
 
 	c.JSON(200, stocks)
@@ -205,7 +205,16 @@ func (env *Env) GetRecommendationsEndpoint(c *gin.Context) {
 	}
 
 	for i := 0; i < len(recs); i++ {
-		recs[i].Stck.Change = ((recs[i].Stck.LastTradePriceOnly / recs[i].Stck.BuyPrice) * 100) - 100
+
+		dev := ((recs[i].Stck.LastTradePriceOnly / recs[i].Stck.BuyPrice) * 100) - 100
+		if dev > 0 {
+			recs[i].Stck.Color = "green"
+		} else {
+			recs[i].Stck.Color = "red"
+		}
+		procString := strconv.FormatFloat(dev, 'f', 2, 64)
+		subString := procString
+		recs[i].Stck.Change = subString
 	}
 
 	sort.Sort(recs)
@@ -406,7 +415,10 @@ func (env *Env) RewardMeetEndpoint(c *gin.Context) {
 	}
 
 	for i := 0; i < len(recs); i++ {
-		recs[i].Stck.Change = ((recs[i].Stck.LastTradePriceOnly / recs[i].Stck.BuyPrice) * 100) - 100
+		dev := ((recs[i].Stck.LastTradePriceOnly / recs[i].Stck.BuyPrice) * 100) - 100
+		procString := strconv.FormatFloat(dev, 'f', 2, 64)
+		subString := procString
+		recs[i].Stck.Change = subString
 	}
 
 	sort.Sort(recs)
