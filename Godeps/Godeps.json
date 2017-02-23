@@ -39,6 +39,10 @@
 			"Rev": "c142f0f1baea5cef7f98a8a6c222f6134368c1f5"
 		},
 		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Rev": "7fcbc72f853b92b5720db4a6b8482be612daef24"
+		},
+		{
 			"ImportPath": "github.com/sendgrid/rest",
 			"Comment": "v2.3.1",
 			"Rev": "3ec51b4f1754e13e92409355851a0a82e9a06461"
