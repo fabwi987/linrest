@@ -42,6 +42,7 @@ type DB struct {
 
 var CurrEnv *Env
 
+/**
 func NewDB(dataSourceName string) error {
 	db, err := sql.Open("mysql", dataSourceName)
 	if err != nil {
@@ -56,9 +57,8 @@ func NewDB(dataSourceName string) error {
 	CurrEnv = &Env{newDB}
 
 	return nil
-}
+}*/
 
-/**
 func NewDB(dataSourceName string) (*DB, error) {
 	db, err := sql.Open("mysql", dataSourceName)
 	if err != nil {
@@ -69,4 +69,4 @@ func NewDB(dataSourceName string) (*DB, error) {
 	}
 
 	return &DB{db}, nil
-}*/
+}

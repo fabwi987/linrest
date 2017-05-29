@@ -1,24 +1,20 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
+	"time"
 
-	jwtmiddleware "github.com/auth0/go-jwt-middleware"
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/fabwi987/linrest/models"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
-/**
 type Env struct {
 	db models.Datastore
-}*/
+}
 
 //var mySigningKey = []byte("FABIANSECRET")
 
@@ -28,7 +24,7 @@ var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options{
 		return mySigningKey, nil
 	},
 	SigningMethod: jwt.SigningMethodHS256,
-})*/
+})
 
 var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options{
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
@@ -39,37 +35,39 @@ var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options{
 		}
 		return decoded, nil
 	},
-})
+})*/
 
 func main() {
-	err := models.NewDB("root:trustno1@/test?parseTime=true")
+	db, err := models.NewDB("root:trustno1@/test?parseTime=true")
 	//err := models.NewDB("ba67093beafab5:c424c6b0@tcp(us-cdbr-iron-east-04.cleardb.net:3306)/heroku_f2d060503ce9b77?parseTime=true")
 	if err != nil {
 		log.Panic(err)
 	}
-	/**
-	//env := &Env{db}
+
+	env := &Env{db}
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
-	}*/
+	}
 
+	/**
 	r := mux.NewRouter()
 
+	r.Handle("/", http.FileServer(http.Dir("/views/")))
 	//non authorized
 	//r.Handle("/get-token", GetTokenHandler).Methods("GET")
 	r.Handle("/status", StatusHandler).Methods("GET")
 
 	//authorized
 	r.Handle("/users", jwtMiddleware.Handler(UserHandler)).Methods("GET")
+	r.Handle("/meets", jwtMiddleware.Handler(MeetHandler)).Methods("GET")
 	r.Handle("/users/single/{id}", jwtMiddleware.Handler(SingleUserHandler)).Methods("GET")
 	r.Handle("/users/leaderboard", jwtMiddleware.Handler(NotImplemented)).Methods("GET")
 
 	//r.Handle("/products", jwtMiddleware.Handler(ProductsHandler)).Methods("GET")
-	//r.Handle("/products/{slug}/feedback", jwtMiddleware.Handler(AddFeedbackHandler)).Methods("POST")
+	//r.Handle("/products/{slug}/feedback", jwtMiddleware.Handler(AddFeedbackHandler)).Methods("POST")*/
 
-	/**
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
@@ -100,9 +98,9 @@ func main() {
 	router.POST("/rec", env.CreateRecommendationsEndpoint)
 	router.POST("/trans", env.CreateTransactionEndpoint)
 
-	router.Run(":" + port)*/
+	router.Run(":" + port)
 
-	http.ListenAndServe(":3000", handlers.LoggingHandler(os.Stdout, r))
+	//http.ListenAndServe(":3000", handlers.LoggingHandler(os.Stdout, r))
 
 }
 
@@ -124,7 +122,7 @@ var GetTokenHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 
 	//Finally, write the token to the browser window
 	w.Write([]byte(tokenString))
-})*/
+})
 
 var StatusHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("API is up and running"))
@@ -166,7 +164,17 @@ var SingleUserHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 	w.Write([]byte(payload))
 })
 
-/**
+var MeetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	met, err := models.CurrEnv.Db.GetMeets()
+	payload, err := json.Marshal(met)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(payload))
+})*/
+
 func (env *Env) GetStocksEndpoint(c *gin.Context) {
 
 	stocks, err := env.db.GetStocks()
@@ -526,4 +534,4 @@ func (env *Env) RewardMeetEndpoint(c *gin.Context) {
 	resp, err := env.db.CreateTransaction(recs[1].ID, recs[1].Usr.ID, 100)
 
 	c.JSON(200, resp)
-}*/
+}
