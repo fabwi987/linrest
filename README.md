@@ -33,7 +33,7 @@
  - Continue on with the defaults.
 
 ### Download the code to local environment
-- `$ go get github.com/fabwi987/linvestor`
+- `$ go get github.com/fabwi987/linrest`
  - The project will download to C:\GoPath\src\github.com\fabwi987\linvestor
 
 ### Using Heoku (hosting through PAAS)
