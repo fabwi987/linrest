@@ -208,9 +208,11 @@ func (env *Env) GetRecommendationsEndpoint(c *gin.Context) {
 
 		dev := ((recs[i].Stck.LastTradePriceOnly / recs[i].Stck.BuyPrice) * 100) - 100
 		if dev > 0 {
-			recs[i].Stck.Color = "green"
+			recs[i].Stck.Color = "bg-success"
+		} else if dev == 0 {
+			recs[i].Stck.Color = "bg-warning"
 		} else {
-			recs[i].Stck.Color = "red"
+			recs[i].Stck.Color = "bg-danger"
 		}
 		procString := strconv.FormatFloat(dev, 'f', 2, 64)
 		subString := procString

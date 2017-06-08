@@ -40,25 +40,6 @@ type DB struct {
 	*sql.DB
 }
 
-var CurrEnv *Env
-
-/**
-func NewDB(dataSourceName string) error {
-	db, err := sql.Open("mysql", dataSourceName)
-	if err != nil {
-		return err
-	}
-	if err = db.Ping(); err != nil {
-		return err
-	}
-
-	newDB := &DB{db}
-
-	CurrEnv = &Env{newDB}
-
-	return nil
-}*/
-
 func NewDB(dataSourceName string) (*DB, error) {
 	db, err := sql.Open("mysql", dataSourceName)
 	if err != nil {
