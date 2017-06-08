@@ -9,7 +9,7 @@ import (
 type Meet struct {
 	ID          int       `json:"ID" bson:"ID"`
 	Location    string    `json:"Location" bson:"Location"`
-	Date        time.Time `json:"Date" bson:"Date"`
+	Date        string    `json:"Date" bson:"Date"`
 	Text        string    `json:"Text" bson:"Text"`
 	Created     time.Time `json:"Created" bson:"Created"`
 	LastUpdated time.Time `json:"LastUpdated" bson:"LastUpdated"`
@@ -88,7 +88,7 @@ func (db *DB) GetMeetsByUser(userid int) ([]*Meet, error) {
 	return poss, nil
 }
 
-func (db *DB) CreateMeet(location string, date time.Time, text string, user int) (sql.Result, error) {
+func (db *DB) CreateMeet(location string, date string, text string, user int) (sql.Result, error) {
 
 	stmt, err := db.Prepare("INSERT meet SET location=?, date=?, text=?, created=?, lastupdated=?, iduser=?")
 	if err != nil {

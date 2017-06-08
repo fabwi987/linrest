@@ -35,6 +35,11 @@
 			"Rev": "8616e8ee5e20a1704615e6c8d7afcdac06087a67"
 		},
 		{
+			"ImportPath": "github.com/joho/godotenv",
+			"Comment": "v1.1-5-gd10b3fb",
+			"Rev": "d10b3fbe007de7a25e086524ad17597afa3d238b"
+		},
+		{
 			"ImportPath": "github.com/manucorporat/sse",
 			"Rev": "c142f0f1baea5cef7f98a8a6c222f6134368c1f5"
 		},

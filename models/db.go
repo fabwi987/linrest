@@ -29,7 +29,7 @@ type Datastore interface {
 	GetMeets() ([]*Meet, error)
 	GetSingleMeet(id int) (*Meet, error)
 	GetMeetsByUser(userid int) ([]*Meet, error)
-	CreateMeet(location string, date time.Time, text string, user int) (sql.Result, error)
+	CreateMeet(location string, date string, text string, user int) (sql.Result, error)
 
 	GetTransactionsByUser(userid int) ([]*Transaction, error)
 	SumTransactionsByUser(userid int) int

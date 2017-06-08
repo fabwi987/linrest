@@ -7,10 +7,9 @@ import (
 	"sort"
 	"strconv"
 
-	"time"
-
 	"github.com/fabwi987/linrest/models"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 type Env struct {
@@ -18,9 +17,12 @@ type Env struct {
 }
 
 func main() {
-	//db, err := models.NewDB("root:trustno1@/test?parseTime=true")
-	db, err := models.NewDB("ba67093beafab5:c424c6b0@tcp(us-cdbr-iron-east-04.cleardb.net:3306)/heroku_f2d060503ce9b77?parseTime=true")
-	//added a comment here
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	db, err := models.NewDB(os.Getenv("CONNECTION_STRING_LOCAL"))
 
 	if err != nil {
 		log.Panic(err)
@@ -49,7 +51,7 @@ func main() {
 	router.GET("/recommendations/user/:id", env.GetRecommendationsByUsersEndpoint)
 	router.GET("/recommendations/meet/:id", env.GetRecommendationsByMeetEndpoint)
 
-	router.GET("/meet", env.GetMeetsEndpoint)
+	router.GET("/meets", env.GetMeetsEndpoint)
 	router.GET("/meet/single/:id", env.GetSingleMeetEndpoint)
 	router.GET("/meet/user/:id", env.GetMeetByUserEndpoint)
 
@@ -60,7 +62,8 @@ func main() {
 	router.POST("/stock", env.CreateStockEndpoint)
 	router.POST("/meet", env.CreateMeetEndpoint)
 	router.POST("/meet/reward", env.RewardMeetEndpoint)
-	router.POST("/rec", env.CreateRecommendationsEndpoint)
+	//router.POST("/rec", env.CreateRecommendationsEndpoint)
+	router.POST("/rec/meet/:id", env.CreateRecommendationsEndpoint)
 	router.POST("/trans", env.CreateTransactionEndpoint)
 
 	router.Run(":" + port)
@@ -251,35 +254,33 @@ func (env *Env) GetRecommendationsByMeetEndpoint(c *gin.Context) {
 }
 
 func (env *Env) CreateRecommendationsEndpoint(c *gin.Context) {
+	symbol := c.Param("id")
+	meetid, err := strconv.Atoi(symbol)
 
-	stcken, err := models.GetSingleStocks(c.Query("symbol"))
-
-	buyprice, err := strconv.ParseFloat(c.Query("buyprice"), 64)
-	numberofshares, err := strconv.Atoi(c.Query("numberofshares"))
+	user, err := strconv.Atoi(c.PostForm("user"))
+	stcken, err := models.GetSingleStocks(c.PostForm("symbol"))
 	lasttradeprice, err := strconv.ParseFloat(stcken.Query.Results.Quote.LastTradePriceOnly, 64)
 
-	_, err = env.db.CreateStock(stcken.Query.Results.Quote.Symbol, stcken.Query.Created, buyprice, numberofshares, 0, stcken.Query.Results.Quote.Name, lasttradeprice)
+	_, err = env.db.CreateStock(stcken.Query.Results.Quote.Symbol, stcken.Query.Created, lasttradeprice, 0, 0, stcken.Query.Results.Quote.Name, lasttradeprice)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 
-	user, err := strconv.Atoi(c.Query("iduser"))
-	meet, err := strconv.Atoi(c.Query("idmeet"))
-
-	recs, err := env.db.CreateRecommendation(c.Query("symbol"), user, meet)
+	recs, err := env.db.CreateRecommendation(stcken.Query.Results.Quote.Symbol, user, meetid)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 
+	/**
 	recuser, err := env.db.GetSingleUser(user)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 
 	//err = models.SendRecommendationMail(recuser.Mail, recuser.Name)
-	err = models.SendRecommendationText(recuser.Phone, recuser.Name, stcken.Query.Results.Quote.Name)
+	//err = models.SendRecommendationText(recuser.Phone, recuser.Name, stcken.Query.Results.Quote.Name)*/
 
-	c.JSON(200, recs)
+	c.JSON(201, recs)
 }
 
 func (env *Env) CreateUserEndpoint(c *gin.Context) {
@@ -311,13 +312,12 @@ func (env *Env) CreateStockEndpoint(c *gin.Context) {
 }
 
 func (env *Env) CreateMeetEndpoint(c *gin.Context) {
-
-	user, err := strconv.Atoi(c.Query("userid"))
-	met, err := env.db.CreateMeet(c.Query("location"), time.Now(), c.Query("text"), user)
+	user, err := strconv.Atoi(c.PostForm("user"))
+	met, err := env.db.CreateMeet(c.PostForm("location"), c.PostForm("date"), c.PostForm("text"), user)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
-	c.JSON(200, met)
+	c.JSON(201, met)
 }
 
 func (env *Env) GetMeetsEndpoint(c *gin.Context) {
